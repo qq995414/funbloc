@@ -1,0 +1,39 @@
+# .github/workflows/publish.yml
+name: web deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build and Push
+    steps:
+      - name: git-checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
+
+      - name: Install all dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build # The build command of your project
+        env:
+          CI: false
+    
+      # Deploy to another repo
+      - name: Deploy
+        uses: s0/git-publish-subdir-action@v2.5.1
+        env:
+          REPO: self
+          BRANCH: deploy
+          FOLDER: build
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Curl
+        uses: wei/curl@master
+        with:
+          args: http://shop.funbloc.com.tw/api/v1/manager/auth/gitpull # 呼叫主機 git pull
